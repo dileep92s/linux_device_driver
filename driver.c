@@ -39,14 +39,29 @@ int myRelease(struct inode *inode, struct file *filep)
 
 long myioctl(struct file *fp, unsigned int pid, unsigned long num)
 {
-    printk("%s\n", __FUNCTION__);
-
     struct module *ptr = THIS_MODULE;
     struct task_struct *my_task = current;
-
+    
+    printk("%s\n", __FUNCTION__);
     printk(" pid = %d\n comm = %s\n module = %s\n", my_task->pid, my_task->comm, ptr->name);
 
     return 0;
+}
+
+static ssize_t myRead(struct file *filep, char __user *buf, size_t len, loff_t *off)
+{
+    const char msg[] = "hi from myDev\n";
+    printk("%s\n", __FUNCTION__);
+    copy_to_user(buf, msg, sizeof(msg));
+    return sizeof(msg);
+}
+
+static ssize_t myWrite(struct file *filep, const char __user *buf, size_t len, loff_t *off)
+{
+    char msg[512];
+    copy_from_user(msg, buf, len);
+    printk("%s msg = %s\n", __FUNCTION__, msg);
+    return len;
 }
 
 struct file_operations fops = {
